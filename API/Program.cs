@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Text;
 using System.Text.Json;
 using Application.Commands;
+using Application.Extensions;
 using Application.Handler;
 using Application.Validations;
 using DDD_ExceptionHandling.Middleware;
@@ -34,11 +35,7 @@ app.MapPost("/api/booking", context =>
         var validator = new CreateBookingCommandValidation();
         var createBookingCommand = JsonSerializer.Deserialize<CreateBookingCommand>(json);
         var validationResult = validator.Validate(createBookingCommand);
-        if (!validationResult.IsValid)
-        {
-            var errors = validationResult.Errors.ToDictionary(x => x.PropertyName, x => new[] { x.ErrorMessage });
-            throw new DomainValidationException("Invalid request parameters.", errors);
-        }
+        validationResult.EnsureValidDomain();
         
         var createBookingHandler = new CreateBookingHandler();
         createBookingHandler.Handle(createBookingCommand);
